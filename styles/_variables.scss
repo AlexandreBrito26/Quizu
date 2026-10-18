@@ -1,0 +1,16 @@
+// Tokens fixos (as cores que mudam por arco ficam em CSS custom properties, em globals.scss)
+$font-display: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+$font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+$correct: #2e8b57;
+$correct-soft: #d7f0e0;
+$wrong: #c1121f;
+$wrong-soft: #f8d9dc;
+
+$radius: 14px;
+$radius-lg: 20px;
+
+$tap: 3rem; // alvo de toque mínimo (48px)
+
+$bp-sm: 600px;
+$bp-md: 900px;

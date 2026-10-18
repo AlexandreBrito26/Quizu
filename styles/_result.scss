@@ -1,0 +1,187 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.result {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+// Cartaz de "Procurado"
+.wanted {
+  @include parchment;
+  position: relative;
+  padding: 1.5rem 1rem 1.6rem;
+  text-align: center;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 2px solid var(--c-paper-border);
+    border-radius: calc(#{$radius-lg} - 6px);
+    pointer-events: none;
+  }
+}
+
+.wanted__sub {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.wanted__label {
+  font-family: $font-display;
+  font-size: clamp(2rem, 11vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+}
+
+.wanted__emoji {
+  margin: 0.5rem 0;
+  font-size: clamp(3.5rem, 18vw, 5rem);
+}
+
+.wanted__rank {
+  font-family: $font-display;
+  font-size: 1.7rem;
+  font-weight: 800;
+}
+
+.wanted__blurb {
+  max-width: 26rem;
+  margin: 0.25rem auto 0.75rem;
+  opacity: 0.85;
+}
+
+.wanted__bounty {
+  font-family: $font-display;
+  font-size: clamp(1.6rem, 8vw, 2.4rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+
+  small {
+    display: block;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+}
+
+.record {
+  text-align: center;
+  font-weight: 800;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.stat {
+  @include parchment($radius);
+  padding: 0.75rem 0.4rem;
+  text-align: center;
+
+  strong {
+    display: block;
+    font-family: $font-display;
+    font-size: 1.35rem;
+  }
+
+  span {
+    font-size: 0.75rem;
+    opacity: 0.75;
+  }
+}
+
+.crew {
+  @include parchment;
+  padding: 1rem 1.1rem;
+}
+
+.crew__label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.crew__role {
+  margin: 0.15rem 0 0.25rem;
+  font-family: $font-display;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.actions {
+  display: grid;
+  gap: 0.6rem;
+
+  @include up($bp-sm) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+// Duelo
+.versus {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.versus__p {
+  @include parchment;
+  padding: 1rem 0.5rem;
+  text-align: center;
+
+  span {
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  &.is-winner {
+    border-color: var(--c-accent);
+    box-shadow:
+      0 0 0 4px var(--c-accent),
+      0 16px 36px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.versus__score {
+  margin: 0.25rem 0;
+  font-family: $font-display;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.crew__label--mates {
+  margin-top: 1rem;
+}
+
+.mates {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    padding: 0.6rem 0.75rem;
+    border-radius: $radius;
+    background: rgba(255, 255, 255, 0.5);
+    font-size: 0.92rem;
+  }
+
+  span {
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+}

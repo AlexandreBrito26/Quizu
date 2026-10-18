@@ -1,0 +1,298 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.btn {
+  @include button-accent;
+}
+
+.btn-ghost {
+  @include button-ghost;
+}
+
+// ---------- Cabeçalho ----------
+.hud {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-bottom: 0.6rem;
+}
+
+.hud__back {
+  @include button-ghost;
+  min-width: $tap;
+  padding: 0.5rem 0.9rem;
+  font-size: 1.2rem;
+}
+
+.hud__center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud__mode {
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud__count {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.hud__score {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// ---------- Barras ----------
+.bar {
+  height: 8px;
+  margin-bottom: 0.5rem;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+
+  > span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--c-accent);
+    transition: width 0.3s ease;
+  }
+}
+
+.bar--timer > span {
+  transition: width 0.15s linear;
+}
+
+.bar--timer.is-low > span {
+  background: $wrong;
+}
+
+// ---------- Duelo ----------
+.duel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin: 0.4rem 0 0.75rem;
+}
+
+.duel__p {
+  padding: 0.5rem 0.75rem;
+  border-radius: $radius;
+  border: 2px solid transparent;
+  background: rgba(0, 0, 0, 0.25);
+  text-align: center;
+
+  &.is-turn {
+    border-color: var(--c-accent);
+    background: rgba(255, 255, 255, 0.14);
+  }
+}
+
+.duel__name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.duel__score {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+// ---------- Pergunta ----------
+.card {
+  @include parchment;
+  margin-top: 0.5rem;
+  padding: 1.1rem 1rem 1.25rem;
+
+  @include up($bp-sm) {
+    padding: 1.5rem 1.75rem 1.75rem;
+  }
+}
+
+.card__kicker {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.card__prompt {
+  margin: 0.4rem 0 1rem;
+  font-family: $font-display;
+  font-size: clamp(1.25rem, 4.6vw, 1.7rem);
+  line-height: 1.25;
+}
+
+.clues {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.clue {
+  padding: 0.55rem 0.75rem;
+  border-radius: $radius;
+  border: 1px dashed var(--c-paper-border);
+  background: rgba(255, 255, 255, 0.55);
+  animation: pop 0.25s ease both;
+}
+
+.options {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: calc(#{$tap} + 0.5rem);
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius;
+  border: 2px solid var(--c-paper-border);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--c-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 0.1s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      background: #fff;
+      border-color: var(--c-ink);
+    }
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--c-ink);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &.is-correct {
+    background: $correct-soft;
+    border-color: $correct;
+  }
+
+  &.is-wrong {
+    background: $wrong-soft;
+    border-color: $wrong;
+  }
+
+  &.is-dim {
+    opacity: 0.55;
+  }
+}
+
+.option__key {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-paper-border);
+  background: var(--c-paper-2);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.feedback {
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: $radius;
+  font-size: 0.95rem;
+
+  strong {
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+
+  &.is-right {
+    background: $correct-soft;
+    color: #14452c;
+  }
+
+  &.is-miss {
+    background: $wrong-soft;
+    color: #6b0d14;
+  }
+}
+
+// Barra de ação fixa no rodapé: fica ao alcance do polegar no celular.
+.dock {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.5rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.5) 45%);
+  pointer-events: none;
+
+  > * {
+    flex: 1;
+    max-width: 26rem;
+    pointer-events: auto;
+  }
+}
+
+.dock .btn-ghost {
+  background: rgba(8, 18, 36, 0.92);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clue {
+    animation: none;
+  }
+
+  .bar > span,
+  .option {
+    transition: none;
+  }
+}

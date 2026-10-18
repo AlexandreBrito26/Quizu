@@ -1,0 +1,91 @@
+@use "variables" as *;
+
+// Mobile-first: estilos base são do celular; expande com min-width.
+@mixin up($bp) {
+  @media (min-width: $bp) {
+    @content;
+  }
+}
+
+@mixin parchment($radius: $radius-lg) {
+  background:
+    radial-gradient(ellipse at top left, rgba(255, 255, 255, 0.35), transparent 55%),
+    linear-gradient(160deg, var(--c-paper) 0%, var(--c-paper-2) 100%);
+  color: var(--c-ink);
+  border: 2px solid var(--c-paper-border);
+  border-radius: $radius;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 16px 36px rgba(0, 0, 0, 0.3);
+}
+
+@mixin button-accent {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  min-height: $tap;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background: var(--c-accent);
+  color: var(--c-accent-ink);
+  box-shadow: 0 4px 0 var(--c-accent-shadow);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  touch-action: manipulation;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    filter 0.12s ease;
+
+  &:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--c-accent-shadow);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--c-text);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      filter: brightness(1.07);
+    }
+  }
+}
+
+@mixin button-ghost {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: $tap;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--c-text);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 3px solid var(--c-text);
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
