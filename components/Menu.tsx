@@ -11,11 +11,20 @@ import { countRounds, type DifficultyFilter } from "@/lib/rounds";
 
 const LEVELS: DifficultyFilter[] = ["todas", "facil", "medio", "dificil"];
 import { getBest } from "@/lib/storage";
+import { dailyKey } from "@/lib/seed";
+import { loadProfile } from "@/lib/progress";
 
 export default function Menu() {
   const [saga, setSaga] = useState<SagaSlug>("todas");
   const [level, setLevel] = useState<DifficultyFilter>("todas");
   const [best, setBest] = useState<Record<string, number>>({});
+  const [daily, setDaily] = useState<{ done: boolean; score: number; streak: number } | null>(null);
+
+  useEffect(() => {
+    const p = loadProfile();
+    const today = dailyKey();
+    setDaily({ done: p.daily.results[today] !== undefined, score: p.daily.results[today] ?? 0, streak: p.daily.last === today ? p.daily.streak : 0 });
+  }, []);
 
   // Recordes ficam no localStorage, então só dá para ler depois de montar.
   useEffect(() => {
@@ -35,6 +44,22 @@ export default function Menu() {
           Escolha uma saga, escolha um modo e mostre que você conhece cada canto do mar. Cada saga muda o visual do jogo.
         </p>
       </header>
+
+      <Link className="daily" href="/diario">
+        <span className="daily__emoji" aria-hidden="true">📅</span>
+        <span>
+          <span className="mode__name">Desafio diário</span>
+          <span className="mode__desc">As mesmas 10 perguntas para todo mundo, um novo desafio por dia. Entra no ranking online.</span>
+          <span className="mode__meta">
+            {daily?.done ? `Feito hoje: ${toBerries(daily.score)}${daily.streak > 1 ? ` · 🔥 ${daily.streak} dias seguidos` : ""}. Dá para treinar de novo.` : "Ainda não jogou hoje · bônus de berries"}
+          </span>
+        </span>
+      </Link>
+      <nav className="hub__tabs hub__tabs--menu" aria-label="Loja, conquistas e ranking">
+        <Link className="chip" href="/loja">🛒 Loja</Link>
+        <Link className="chip" href="/conquistas">🏅 Conquistas</Link>
+        <Link className="chip" href="/ranking">🏆 Ranking</Link>
+      </nav>
 
       <h2 className="section-title">1. Escolha a saga</h2>
       <div className="chips" role="group" aria-label="Saga">

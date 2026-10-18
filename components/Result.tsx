@@ -8,18 +8,21 @@ import { DIFFICULTY_LABEL } from "@/data/types";
 import { SAGA_CREW, getCrewRole, getRank, toBerries } from "@/lib/ranks";
 import type { DifficultyFilter } from "@/lib/rounds";
 import { longestStreak, type Outcome } from "@/lib/scoring";
+import Toasts from "./Toasts";
+import { loadProfile, markSent, recordGame, setNick, type GameReport } from "@/lib/progress";
 import { getBest, saveBest } from "@/lib/storage";
 
 type Props = {
   modeSlug: ModeSlug;
   saga: SagaSlug;
   difficulty: DifficultyFilter;
+  daily?: string; // data do desafio diário (AAAA-MM-DD)
   total: number;
   outcomes: Outcome[];
   onRestart: () => void;
 };
 
-export default function Result({ modeSlug, saga, difficulty, total, outcomes, onRestart }: Props) {
+export default function Result({ modeSlug, saga, difficulty, daily, total, outcomes, onRestart }: Props) {
   const mode = getMode(modeSlug)!;
   const isDuel = mode.players === 2;
 
@@ -45,6 +48,10 @@ export default function Result({ modeSlug, saga, difficulty, total, outcomes, on
   const [record, setRecord] = useState<{ best: number; isNew: boolean } | null>(null);
   const [copied, setCopied] = useState(false);
   const saved = useRef(false);
+  const [report, setReport] = useState<GameReport | null>(null);
+  const [nick, setNickText] = useState("");
+  const [sendState, setSendState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [sendMsg, setSendMsg] = useState("");
 
   useEffect(() => {
     if (isDuel || saved.current) return;
@@ -53,7 +60,32 @@ export default function Result({ modeSlug, saga, difficulty, total, outcomes, on
     const previous = getBest(key);
     const isNew = saveBest(key, score);
     setRecord({ best: Math.max(previous, score), isNew });
-  }, [isDuel, modeSlug, saga, difficulty, score]);
+    setReport(recordGame({ outcomes, total, saga, daily }));
+    const p = loadProfile();
+    setNickText(p.nick);
+    if (daily && p.daily.sent[daily]) setSendState("sent");
+  }, [isDuel, modeSlug, saga, difficulty, score, outcomes, total, daily]);
+
+  async function sendToRanking() {
+    if (!daily || !report) return;
+    setSendState("sending");
+    try {
+      const res = await fetch("/api/ranking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ device: loadProfile().device, nick, score: report.score, date: daily }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível enviar.");
+      setNick(nick.trim());
+      markSent(daily);
+      setSendState("sent");
+      setSendMsg("Pontuação enviada!");
+    } catch (e) {
+      setSendState("error");
+      setSendMsg(e instanceof Error ? e.message : "Não foi possível enviar.");
+    }
+  }
 
   async function share() {
     const text = isDuel
@@ -85,6 +117,18 @@ export default function Result({ modeSlug, saga, difficulty, total, outcomes, on
         Menu
       </Link>
     </div>
+  );
+
+  const rewards = report && (
+    <>
+      <p className="record">
+        {report.practice
+          ? "Treino: o desafio de hoje já valeu, então esta tentativa não paga berries."
+          : `💰 +${toBerries(report.earned + report.bonus)} na carteira${report.bonus ? ` (bônus diário ${toBerries(report.bonus)})` : ""}`}
+        {daily && !report.practice && report.streak > 1 ? ` · 🔥 ${report.streak} dias seguidos` : ""}
+      </p>
+      <Toasts items={report.unlocked} />
+    </>
   );
 
   // ---------- Duelo ----------
@@ -147,6 +191,41 @@ export default function Result({ modeSlug, saga, difficulty, total, outcomes, on
           {toBerries(score)}
         </p>
       </div>
+
+      {rewards}
+
+      {daily && report && !report.practice && (
+        <form
+          className="send"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void sendToRanking();
+          }}
+        >
+          <label htmlFor="nick">Entrar no ranking de hoje</label>
+          <div className="send__row">
+            <input
+              id="nick"
+              value={nick}
+              maxLength={16}
+              minLength={2}
+              placeholder="Seu apelido"
+              disabled={sendState === "sent" || sendState === "sending"}
+              onChange={(e) => setNickText(e.target.value)}
+              autoComplete="nickname"
+            />
+            <button type="submit" className="btn" disabled={sendState === "sent" || sendState === "sending" || nick.trim().length < 2}>
+              {sendState === "sent" ? "Enviado ✓" : sendState === "sending" ? "Enviando…" : "Enviar"}
+            </button>
+          </div>
+          {sendMsg && <small role="status">{sendMsg}</small>}
+          {sendState === "sent" && (
+            <Link className="send__link" href="/ranking">
+              Ver o ranking →
+            </Link>
+          )}
+        </form>
+      )}
 
       {record && (
         <p className="record">

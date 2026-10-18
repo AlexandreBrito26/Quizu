@@ -5,6 +5,7 @@ import { QUESTIONS } from "@/data/questions";
 import type { Saga, SagaSlug } from "@/data/sagas";
 import { STATEMENTS } from "@/data/statements";
 import type { Difficulty } from "@/data/types";
+import { hashString, mulberry32 } from "./seed";
 
 // Formato único que o componente de jogo entende, independente do modo.
 export type Round = {
@@ -19,19 +20,19 @@ export type Round = {
   explanation?: string;
 };
 
-export function shuffle<T>(items: readonly T[]): T[] {
+export function shuffle<T>(items: readonly T[], rng: () => number = Math.random): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
 }
 
 // Embaralha as opções e recalcula o índice da resposta certa.
-function withShuffledOptions(options: string[], answer: number) {
+function withShuffledOptions(options: string[], answer: number, rng: () => number = Math.random) {
   const correct = options[answer];
-  const shuffled = shuffle(options);
+  const shuffled = shuffle(options, rng);
   return { options: shuffled, answer: shuffled.indexOf(correct) };
 }
 
@@ -106,4 +107,21 @@ export function buildRounds(mode: Mode, saga: SagaSlug, difficulty: DifficultyFi
 
 export function countRounds(mode: Mode, saga: SagaSlug, difficulty: DifficultyFilter = "todas"): number {
   return buildRounds(mode, saga, difficulty).length;
+}
+
+// Desafio diário: 10 perguntas do clássico, iguais para todos no mesmo dia.
+export const DAILY_ROUNDS = 10;
+
+export function buildDailyRounds(dateKey: string): Round[] {
+  const rng = mulberry32(hashString(`quizu:${dateKey}`));
+  const pool = QUESTIONS.map((q) => ({
+    id: q.id,
+    saga: q.saga,
+    difficulty: q.difficulty,
+    kicker: "Desafio diário",
+    prompt: q.question,
+    explanation: q.explanation,
+    ...withShuffledOptions(q.options, q.answer, rng),
+  }));
+  return shuffle(pool, rng).slice(0, DAILY_ROUNDS);
 }

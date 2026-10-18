@@ -15,6 +15,21 @@ Mobile: layout mobile-first, botões de 48px+, ação principal fixa no rodapé 
 
 Níveis Fácil, Médio e Difícil podem ser combinados com qualquer saga. O resultado mostra o seu bando ideal (tripulantes das sagas em que você foi melhor).
 
+## Loja, conquistas, desafio diário e ranking
+- **Desafio diário** (`/diario`): as mesmas 10 perguntas para todo mundo, sorteadas pela data (horário de Brasília). Só a primeira tentativa do dia vale berries e ranking; as outras são treino. Dias seguidos dão bônus.
+- **Loja** (`/loja`): gaste berries em navios (aparecem no mar de todas as telas) e em 50/50 extras.
+- **Conquistas** (`/conquistas`): 14 conquistas, cada uma com recompensa em berries.
+- **Ranking online** (`/ranking`): top 20 do dia e geral, enviado ao fim do desafio diário.
+
+Carteira, compras e conquistas ficam no `localStorage` do aparelho. O ranking precisa de um banco: sem ele o jogo funciona normalmente e a tela mostra "indisponível".
+
+### Ligando o ranking online (grátis)
+1. No projeto da Vercel, vá em **Storage** → **Marketplace** → **Upstash for Redis** e crie um banco gratuito ligado ao projeto.
+2. A integração cria as variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`). O código aceita as duas.
+3. Faça um novo deploy.
+
+Limite conhecido: a pontuação é calculada no aparelho, então um jogador esperto pode enviar um valor falso. A API só aceita 1 envio por aparelho por dia, pontuação máxima possível e data de hoje, mas não é anti-trapaça de verdade.
+
 ## Rodar localmente
 ```bash
 npm install

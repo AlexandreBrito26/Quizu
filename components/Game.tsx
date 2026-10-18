@@ -10,14 +10,16 @@ import type { SagaSlug } from "@/data/sagas";
 import { DIFFICULTY_LABEL } from "@/data/types";
 import { isMuted, play, setMuted } from "@/lib/fx";
 import { toBerries } from "@/lib/ranks";
-import { buildRounds, type DifficultyFilter, type Round } from "@/lib/rounds";
+import { consumeFifty, loadProfile } from "@/lib/progress";
+import { buildDailyRounds, buildRounds, type DifficultyFilter, type Round } from "@/lib/rounds";
+import { dailyKey } from "@/lib/seed";
 import { roundPoints, trailingStreak, type Outcome } from "@/lib/scoring";
 
 const KEYS = ["A", "B", "C", "D"];
 
-type Props = { modeSlug: ModeSlug; saga: SagaSlug };
+type Props = { modeSlug: ModeSlug; saga: SagaSlug; daily?: boolean };
 
-export default function Game({ modeSlug, saga }: Props) {
+export default function Game({ modeSlug, saga, daily = false }: Props) {
   const mode = getMode(modeSlug)!;
   const isDuel = mode.players === 2;
 
@@ -35,6 +37,8 @@ export default function Game({ modeSlug, saga }: Props) {
   const [mute, setMute] = useState(false);
   const usedFiftyNow = useRef(false);
   const lastTick = useRef(-1);
+  const [stock, setStock] = useState(0); // 50/50 extras comprados na loja
+  const [dayKey, setDayKey] = useState("");
 
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("todas");
   const startedAt = useRef(0);
@@ -47,7 +51,10 @@ export default function Game({ modeSlug, saga }: Props) {
     const d = new URLSearchParams(window.location.search).get("d");
     const level: DifficultyFilter = d === "facil" || d === "medio" || d === "dificil" ? d : "todas";
     setDifficulty(level);
-    setRounds(buildRounds(mode, saga, level));
+    const key = dailyKey();
+    setDayKey(key);
+    setStock(loadProfile().fifty);
+    setRounds(daily ? buildDailyRounds(key) : buildRounds(mode, saga, level));
     setIndex(0);
     setPicked(undefined);
     setCluesShown(1);
@@ -55,7 +62,7 @@ export default function Game({ modeSlug, saga }: Props) {
     setFinished(false);
     setHidden([]);
     setFiftyUsed([false, false]);
-  }, [mode, saga]);
+  }, [mode, saga, daily]);
 
   useEffect(() => {
     start();
@@ -121,8 +128,10 @@ export default function Game({ modeSlug, saga }: Props) {
     usedFiftyNow.current = true;
     play("tap");
     setHidden(wrong.slice(0, Math.floor(round.options.length / 2)));
+    // Depois da cota grátis do jogo, cada uso gasta um 50/50 da loja.
+    if (fiftyUsed[player] && consumeFifty()) setStock((n) => Math.max(0, n - 1));
     setFiftyUsed((u) => (player === 0 ? [true, u[1]] : [u[0], true]));
-  }, [round, player]);
+  }, [round, player, fiftyUsed]);
 
   // Cronômetro
   useEffect(() => {
@@ -203,7 +212,7 @@ export default function Game({ modeSlug, saga }: Props) {
   if (finished) {
     return (
       <Shell theme={saga}>
-        <Result modeSlug={modeSlug} saga={saga} difficulty={difficulty} total={rounds.length} outcomes={outcomes} onRestart={start} />
+        <Result daily={daily ? dayKey : undefined} modeSlug={modeSlug} saga={saga} difficulty={difficulty} total={rounds.length} outcomes={outcomes} onRestart={start} />
       </Shell>
     );
   }
@@ -220,7 +229,7 @@ export default function Game({ modeSlug, saga }: Props) {
   const progress = ((index + (hasAnswered ? 1 : 0)) / rounds.length) * 100;
   const lastRound = index + 1 >= rounds.length;
   const streak = trailingStreak(outcomes, player);
-  const canFifty = !hasAnswered && !fiftyUsed[player] && !usedFiftyNow.current && round.options.length >= 4;
+  const canFifty = !hasAnswered && (!fiftyUsed[player] || stock > 0) && !usedFiftyNow.current && round.options.length >= 4;
 
   let nextLabel = lastRound ? "Ver resultado" : "Próxima →";
   if (isDuel && !lastRound) nextLabel = `Vez do Capitão ${player === 0 ? 2 : 1} →`;
@@ -234,7 +243,7 @@ export default function Game({ modeSlug, saga }: Props) {
         </Link>
         <div className="hud__center">
           <span className="hud__mode">
-            <span aria-hidden="true">{mode.emoji}</span> {mode.name}
+            <span aria-hidden="true">{daily ? "📅" : mode.emoji}</span> {daily ? "Desafio diário" : mode.name}
           </span>
           <span className="hud__count">
             Rodada {index + 1} de {rounds.length}
@@ -352,7 +361,7 @@ export default function Game({ modeSlug, saga }: Props) {
       <div className="dock">
         {canFifty && (
           <button type="button" className="btn-ghost" onClick={useFifty}>
-            ✂️ 50/50
+            ✂️ 50/50{fiftyUsed[player] ? ` (${stock})` : ""}
           </button>
         )}
         {!hasAnswered && cluesTotal > 0 && cluesShown < cluesTotal && (

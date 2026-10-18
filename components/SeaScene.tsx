@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { currentLook } from "@/lib/progress";
 
 type Props = { theme: string };
 
@@ -144,7 +145,8 @@ export default function SeaScene({ theme }: Props) {
     if (!canvas || !ctx) return;
 
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const look = LOOKS[theme] ?? LOOKS.todas;
+    // O navio comprado na loja vale em todas as sagas; sem compra, usa o da saga.
+    const look = currentLook() ?? LOOKS[theme] ?? LOOKS.todas;
     let w = 0, h = 0, raf = 0, start = performance.now(), waveA = "", waveB = "";
 
     const readColors = () => {
